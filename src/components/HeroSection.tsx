@@ -38,7 +38,7 @@ const HeroSection = () => {
         <Box
           className="animate-fade-in"
           sx={{
-            mb: 4,
+            mb: 5,
             display: 'flex',
             justifyContent: 'center',
           }}
@@ -48,9 +48,18 @@ const HeroSection = () => {
             src={logo}
             alt="Matematika O'quv Markazi"
             sx={{
-              height: { xs: 100, md: 140 },
+              height: { xs: 160, md: 220 },
               width: 'auto',
-              filter: 'drop-shadow(0 4px 12px rgba(59, 88, 168, 0.15))',
+              filter: 'drop-shadow(0 0 30px rgba(59, 88, 168, 0.4)) drop-shadow(0 0 60px rgba(59, 88, 168, 0.2))',
+              animation: 'glow 3s ease-in-out infinite alternate',
+              '@keyframes glow': {
+                '0%': {
+                  filter: 'drop-shadow(0 0 20px rgba(59, 88, 168, 0.3)) drop-shadow(0 0 40px rgba(59, 88, 168, 0.15))',
+                },
+                '100%': {
+                  filter: 'drop-shadow(0 0 40px rgba(59, 88, 168, 0.5)) drop-shadow(0 0 80px rgba(59, 88, 168, 0.25))',
+                },
+              },
             }}
           />
         </Box>
