@@ -28,7 +28,7 @@ const Footer = () => {
               src={logo}
               alt="Logo"
               sx={{
-                height: 50,
+                height: 150,
                 filter: 'brightness(0) invert(1)',
               }}
             />
