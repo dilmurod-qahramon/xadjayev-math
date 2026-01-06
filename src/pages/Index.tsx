@@ -4,7 +4,6 @@ import HeroSection from '@/components/HeroSection';
 import ResultsSection from '@/components/ResultsSection';
 import InstructorsSection from '@/components/InstructorsSection';
 import ContactSection from '@/components/ContactSection';
-import LogosSection from '@/components/LogosSection';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -16,7 +15,6 @@ const Index = () => {
         <ResultsSection />
         <InstructorsSection />
         <ContactSection />
-        <LogosSection />
         <Footer />
       </Box>
     </ThemeProvider>

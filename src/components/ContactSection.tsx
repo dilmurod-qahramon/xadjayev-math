@@ -136,7 +136,7 @@ const ContactSection = () => {
                     Manzil
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Toshkent shahar, Chilonzor tumani
+                    Toshkent viloyati, Nurafshon shahar
                   </Typography>
                 </Box>
               </Box>
