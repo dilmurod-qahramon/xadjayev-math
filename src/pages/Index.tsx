@@ -1,13 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import muiTheme from '@/theme/muiTheme';
+import HeroSection from '@/components/HeroSection';
+import ResultsSection from '@/components/ResultsSection';
+import InstructorsSection from '@/components/InstructorsSection';
+import ContactSection from '@/components/ContactSection';
+import LogosSection from '@/components/LogosSection';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <ThemeProvider theme={muiTheme}>
+      <CssBaseline />
+      <Box sx={{ overflow: 'hidden' }}>
+        <HeroSection />
+        <ResultsSection />
+        <InstructorsSection />
+        <ContactSection />
+        <LogosSection />
+        <Footer />
+      </Box>
+    </ThemeProvider>
   );
 };
 
