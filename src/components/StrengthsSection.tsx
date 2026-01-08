@@ -82,8 +82,8 @@ const StrengthsSection = () => {
           <Box
             sx={{
               position: 'absolute',
-              width: { xs: 140, md: 180 },
-              height: { xs: 140, md: 180 },
+              width: { xs: 180, md: 240 },
+              height: { xs: 180, md: 240 },
               borderRadius: '50%',
               background: 'linear-gradient(145deg, #0d2847, #1a3a5c)',
               boxShadow: '0 0 60px rgba(25, 118, 210, 0.5), 0 0 100px rgba(77, 171, 245, 0.3), inset 0 0 30px rgba(25, 118, 210, 0.2)',
@@ -108,8 +108,8 @@ const StrengthsSection = () => {
               src={logo}
               alt="Math Center Logo"
               sx={{
-                width: { xs: 90, md: 120 },
-                height: { xs: 90, md: 120 },
+                width: { xs: 120, md: 160 },
+                height: { xs: 120, md: 160 },
                 objectFit: 'contain',
               }}
             />
