@@ -1,128 +1,104 @@
 import { Box, Container, Typography } from '@mui/material';
-import { School, EmojiEvents, Groups, TrendingUp, MenuBook, Psychology } from '@mui/icons-material';
 import logo from '@/assets/logo.svg';
+import { School, EmojiEvents, Groups, TrendingUp, AccessTime, Psychology } from '@mui/icons-material';
 
 const strengths = [
-  { icon: School, label: "Tajribali o'qituvchilar", angle: 0 },
-  { icon: EmojiEvents, label: "Yuqori natijalar", angle: 60 },
-  { icon: Groups, label: "Kichik guruhlar", angle: 120 },
-  { icon: TrendingUp, label: "Individual yondashuv", angle: 180 },
-  { icon: MenuBook, label: "Zamonaviy metodika", angle: 240 },
-  { icon: Psychology, label: "Mantiqiy fikrlash", angle: 300 },
+  { icon: School, label: "Tajribali o'qituvchilar", position: { top: '10%', left: '15%' } },
+  { icon: EmojiEvents, label: "Yuqori natijalar", position: { top: '10%', right: '15%' } },
+  { icon: Groups, label: "Individual yondashuv", position: { top: '45%', left: '5%' } },
+  { icon: TrendingUp, label: "Kafolatlangan o'sish", position: { top: '45%', right: '5%' } },
+  { icon: AccessTime, label: "Qulay jadval", position: { bottom: '10%', left: '15%' } },
+  { icon: Psychology, label: "Zamonaviy metodlar", position: { bottom: '10%', right: '15%' } },
 ];
 
 const StrengthsSection = () => {
   return (
     <Box
-      component="section"
       sx={{
         py: { xs: 8, md: 12 },
-        background: 'linear-gradient(180deg, #0a1929 0%, #132f4c 100%)',
+        background: 'linear-gradient(180deg, #0a1628 0%, #0d2847 50%, #0a1628 100%)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Background decoration */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '600px',
-          height: '600px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(25, 118, 210, 0.1) 0%, transparent 70%)',
-        }}
-      />
-
       <Container maxWidth="lg">
         <Typography
           variant="h2"
           sx={{
             textAlign: 'center',
-            color: '#fff',
-            mb: { xs: 6, md: 8 },
-            fontSize: { xs: '1.75rem', md: '2.5rem' },
+            fontWeight: 700,
+            mb: 8,
+            color: 'white',
+            fontSize: { xs: '2rem', md: '2.5rem' },
           }}
         >
-          Bizning kuchli tomonlarimiz
+          Bizning <span style={{ color: '#4dabf5' }}>kuchli tomonlarimiz</span>
         </Typography>
 
+        {/* Hub and Spokes Design */}
         <Box
           sx={{
             position: 'relative',
-            height: { xs: 450, md: 550 },
+            height: { xs: '500px', md: '450px' },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          {/* Connection lines */}
-          {strengths.map((strength, index) => {
-            const angleRad = (strength.angle * Math.PI) / 180;
-            const lineLength = { xs: 120, md: 180 };
-            return (
-              <Box
-                key={`line-${index}`}
-                sx={{
-                  position: 'absolute',
-                  width: { xs: `${lineLength.xs}px`, md: `${lineLength.md}px` },
-                  height: '2px',
-                  background: 'linear-gradient(90deg, rgba(77, 171, 245, 0.8), rgba(77, 171, 245, 0.1))',
-                  transformOrigin: 'left center',
-                  transform: `rotate(${strength.angle}deg)`,
-                  left: '50%',
-                  top: '50%',
-                  animation: `pulse-line 2s ease-in-out infinite`,
-                  animationDelay: `${index * 0.2}s`,
-                  '@keyframes pulse-line': {
-                    '0%, 100%': { opacity: 0.5 },
-                    '50%': { opacity: 1 },
-                  },
-                }}
-              />
-            );
-          })}
+          {/* Connection Lines - SVG */}
+          <Box
+            component="svg"
+            sx={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              top: 0,
+              left: 0,
+              zIndex: 1,
+              display: { xs: 'none', md: 'block' },
+            }}
+          >
+            {/* Lines from center to each strength */}
+            <line x1="50%" y1="50%" x2="20%" y2="20%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            <line x1="50%" y1="50%" x2="80%" y2="20%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            <line x1="50%" y1="50%" x2="10%" y2="50%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            <line x1="50%" y1="50%" x2="90%" y2="50%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            <line x1="50%" y1="50%" x2="20%" y2="80%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            <line x1="50%" y1="50%" x2="80%" y2="80%" stroke="#1976d2" strokeWidth="2" opacity="0.5" />
+            
+            {/* Animated dots on lines */}
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <circle key={i} r="4" fill="#4dabf5">
+                <animateMotion
+                  dur={`${2 + i * 0.3}s`}
+                  repeatCount="indefinite"
+                  path={`M${50},${50} L${[20, 80, 10, 90, 20, 80][i]},${[20, 20, 50, 50, 80, 80][i]}`}
+                />
+              </circle>
+            ))}
+          </Box>
 
-          {/* Center logo - BIGGER and SHINIER */}
+          {/* Center Logo */}
           <Box
             sx={{
               position: 'absolute',
-              width: { xs: 200, md: 260 },
-              height: { xs: 200, md: 260 },
+              width: { xs: 140, md: 180 },
+              height: { xs: 140, md: 180 },
               borderRadius: '50%',
               background: 'linear-gradient(145deg, #0d2847, #1a3a5c)',
-              boxShadow: `
-                0 0 80px rgba(25, 118, 210, 0.7),
-                0 0 150px rgba(77, 171, 245, 0.5),
-                0 0 200px rgba(25, 118, 210, 0.3),
-                inset 0 0 40px rgba(77, 171, 245, 0.3)
-              `,
+              boxShadow: '0 0 60px rgba(25, 118, 210, 0.5), 0 0 100px rgba(77, 171, 245, 0.3), inset 0 0 30px rgba(25, 118, 210, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 10,
-              border: '4px solid rgba(77, 171, 245, 0.6)',
-              animation: 'pulse-glow 2.5s ease-in-out infinite',
+              border: '3px solid rgba(77, 171, 245, 0.4)',
+              animation: 'pulse-glow 3s ease-in-out infinite',
               '@keyframes pulse-glow': {
                 '0%, 100%': {
-                  boxShadow: `
-                    0 0 80px rgba(25, 118, 210, 0.7),
-                    0 0 150px rgba(77, 171, 245, 0.5),
-                    0 0 200px rgba(25, 118, 210, 0.3),
-                    inset 0 0 40px rgba(77, 171, 245, 0.3)
-                  `,
-                  transform: 'scale(1)',
+                  boxShadow: '0 0 60px rgba(25, 118, 210, 0.5), 0 0 100px rgba(77, 171, 245, 0.3)',
                 },
                 '50%': {
-                  boxShadow: `
-                    0 0 120px rgba(25, 118, 210, 0.9),
-                    0 0 200px rgba(77, 171, 245, 0.7),
-                    0 0 280px rgba(25, 118, 210, 0.5),
-                    inset 0 0 60px rgba(77, 171, 245, 0.5)
-                  `,
-                  transform: 'scale(1.02)',
+                  boxShadow: '0 0 80px rgba(25, 118, 210, 0.7), 0 0 120px rgba(77, 171, 245, 0.5)',
                 },
               },
             }}
@@ -132,70 +108,75 @@ const StrengthsSection = () => {
               src={logo}
               alt="Math Center Logo"
               sx={{
-                width: { xs: 140, md: 180 },
-                height: { xs: 140, md: 180 },
+                width: { xs: 90, md: 120 },
+                height: { xs: 90, md: 120 },
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 20px rgba(77, 171, 245, 0.6)) drop-shadow(0 0 40px rgba(25, 118, 210, 0.4))',
               }}
             />
           </Box>
 
-          {/* Strength nodes */}
+          {/* Strength Nodes */}
           {strengths.map((strength, index) => {
-            const angleRad = (strength.angle * Math.PI) / 180;
-            const radius = { xs: 160, md: 220 };
             const Icon = strength.icon;
-
+            const angles = [
+              { x: -35, y: -35 },  // top-left
+              { x: 35, y: -35 },   // top-right
+              { x: -42, y: 0 },    // left
+              { x: 42, y: 0 },     // right
+              { x: -35, y: 35 },   // bottom-left
+              { x: 35, y: 35 },    // bottom-right
+            ];
+            
             return (
               <Box
                 key={index}
                 sx={{
                   position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: {
-                    xs: `translate(-50%, -50%) translate(${Math.cos(angleRad) * radius.xs}px, ${Math.sin(angleRad) * radius.xs}px)`,
-                    md: `translate(-50%, -50%) translate(${Math.cos(angleRad) * radius.md}px, ${Math.sin(angleRad) * radius.md}px)`,
-                  },
+                  left: `calc(50% + ${angles[index].x}%)`,
+                  top: `calc(50% + ${angles[index].y}%)`,
+                  transform: 'translate(-50%, -50%)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 1,
-                  animation: 'fade-in 0.5s ease-out forwards',
-                  animationDelay: `${index * 0.1}s`,
-                  opacity: 0,
+                  zIndex: 5,
+                  animation: `fade-in 0.5s ease-out ${index * 0.1}s both`,
                   '@keyframes fade-in': {
-                    to: { opacity: 1 },
+                    from: { opacity: 0, transform: 'translate(-50%, -50%) scale(0.8)' },
+                    to: { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: { xs: 50, md: 65 },
-                    height: { xs: 50, md: 65 },
+                    width: { xs: 60, md: 75 },
+                    height: { xs: 60, md: 75 },
                     borderRadius: '50%',
-                    background: 'linear-gradient(145deg, #1976d2, #42a5f5)',
+                    background: 'linear-gradient(145deg, #1a3a5c, #0d2847)',
+                    border: '2px solid rgba(77, 171, 245, 0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 4px 20px rgba(25, 118, 210, 0.4)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                    boxShadow: '0 0 20px rgba(25, 118, 210, 0.3)',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'scale(1.1)',
-                      boxShadow: '0 6px 30px rgba(25, 118, 210, 0.6)',
+                      boxShadow: '0 0 30px rgba(77, 171, 245, 0.5)',
+                      border: '2px solid rgba(77, 171, 245, 0.6)',
                     },
                   }}
                 >
-                  <Icon sx={{ color: '#fff', fontSize: { xs: 24, md: 32 } }} />
+                  <Icon sx={{ fontSize: { xs: 28, md: 35 }, color: '#4dabf5' }} />
                 </Box>
                 <Typography
+                  variant="caption"
                   sx={{
-                    color: '#fff',
-                    fontSize: { xs: '0.7rem', md: '0.85rem' },
+                    color: 'white',
                     fontWeight: 500,
                     textAlign: 'center',
+                    fontSize: { xs: '0.7rem', md: '0.85rem' },
                     maxWidth: { xs: 80, md: 100 },
-                    textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                   }}
                 >
                   {strength.label}
