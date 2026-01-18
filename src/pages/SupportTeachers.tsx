@@ -29,6 +29,7 @@ interface TimeSlot {
   endTime: string;
   isBooked: boolean;
   studentName?: string;
+  studentGroup?: string;
   studentPhone?: string;
 }
 
@@ -130,9 +131,11 @@ const formatDate = (dateStr: string) => {
 const SupportTeachers = () => {
   const navigate = useNavigate();
   const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{ teacher: Teacher; slot: TimeSlot } | null>(null);
   const [bookingDialog, setBookingDialog] = useState(false);
   const [studentName, setStudentName] = useState('');
+  const [studentGroup, setStudentGroup] = useState('');
   const [studentPhone, setStudentPhone] = useState('');
 
   const handleBookSlot = (teacher: Teacher, slot: TimeSlot) => {
@@ -141,29 +144,37 @@ const SupportTeachers = () => {
   };
 
   const confirmBooking = () => {
-    if (!selectedSlot || !studentName.trim()) return;
+    if (!selectedSlot || !studentName.trim() || !studentGroup.trim() || !studentPhone.trim()) return;
 
-    setTeachers((prev) =>
-      prev.map((teacher) => {
-        if (teacher.id !== selectedSlot.teacher.id) return teacher;
-        return {
-          ...teacher,
-          availability: teacher.availability.map((slot) => {
-            if (slot.id !== selectedSlot.slot.id) return slot;
-            return {
-              ...slot,
-              isBooked: true,
-              studentName: studentName.trim(),
-              studentPhone: studentPhone.trim(),
-            };
-          }),
-        };
-      })
-    );
+    const updatedTeachers = teachers.map((teacher) => {
+      if (teacher.id !== selectedSlot.teacher.id) return teacher;
+      return {
+        ...teacher,
+        availability: teacher.availability.map((slot) => {
+          if (slot.id !== selectedSlot.slot.id) return slot;
+          return {
+            ...slot,
+            isBooked: true,
+            studentName: studentName.trim(),
+            studentGroup: studentGroup.trim(),
+            studentPhone: studentPhone.trim(),
+          };
+        }),
+      };
+    });
+
+    setTeachers(updatedTeachers);
+    
+    // Update selected teacher with new data
+    const updatedSelectedTeacher = updatedTeachers.find(t => t.id === selectedTeacher?.id);
+    if (updatedSelectedTeacher) {
+      setSelectedTeacher(updatedSelectedTeacher);
+    }
 
     setBookingDialog(false);
     setSelectedSlot(null);
     setStudentName('');
+    setStudentGroup('');
     setStudentPhone('');
   };
 
@@ -202,131 +213,206 @@ const SupportTeachers = () => {
             </Box>
           </Box>
 
-          {/* Teachers List */}
-          <Grid container spacing={4}>
-            {teachers.map((teacher) => {
-              const groupedSlots = groupSlotsByDate(teacher.availability);
-              const dates = Object.keys(groupedSlots).sort();
-
-              return (
-                <Grid size={12} key={teacher.id}>
-                  <Card
-                    elevation={0}
-                    sx={{
-                      borderRadius: 3,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <CardContent sx={{ p: 3 }}>
-                      {/* Teacher Info */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          {/* Teachers List - Show when no teacher selected */}
+          {!selectedTeacher && (
+            <>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
+                O'qituvchini tanlang
+              </Typography>
+              <Grid container spacing={3}>
+                {teachers.map((teacher) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }} key={teacher.id}>
+                    <Card
+                      elevation={0}
+                      onClick={() => setSelectedTeacher(teacher)}
+                      sx={{
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
                         <Avatar
                           sx={{
-                            width: 64,
-                            height: 64,
+                            width: 80,
+                            height: 80,
                             bgcolor: 'primary.main',
-                            fontSize: '1.5rem',
+                            fontSize: '1.75rem',
                             fontWeight: 600,
-                            mr: 2,
+                            mx: 'auto',
+                            mb: 2,
                           }}
                         >
                           {teacher.avatar}
                         </Avatar>
-                        <Box>
-                          <Typography variant="h6" fontWeight={600}>
-                            {teacher.name}
+                        <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>
+                          {teacher.name}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <School fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {teacher.subject}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <School fontSize="small" color="action" />
-                            <Typography variant="body2" color="text.secondary">
-                              {teacher.subject}
-                            </Typography>
-                          </Box>
                         </Box>
-                      </Box>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{ mt: 2 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTeacher(teacher);
+                          }}
+                        >
+                          Vaqtlarni ko'rish
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </>
+          )}
 
-                      {/* Availability Schedule */}
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                        Bo'sh vaqtlar:
+          {/* Selected Teacher Timeline */}
+          {selectedTeacher && (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Button
+                  startIcon={<ArrowBack />}
+                  onClick={() => setSelectedTeacher(null)}
+                  sx={{ mr: 2 }}
+                >
+                  Orqaga
+                </Button>
+              </Box>
+
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  overflow: 'hidden',
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  {/* Teacher Info */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Avatar
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        bgcolor: 'primary.main',
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        mr: 2,
+                      }}
+                    >
+                      {selectedTeacher.avatar}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight={600}>
+                        {selectedTeacher.name}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
-                        {dates.map((date) => (
-                          <Paper
-                            key={date}
-                            elevation={0}
-                            sx={{
-                              minWidth: 140,
-                              p: 2,
-                              borderRadius: 2,
-                              bgcolor: 'grey.50',
-                              border: '1px solid',
-                              borderColor: 'grey.200',
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              fontWeight={600}
-                              color="primary.main"
-                              sx={{ mb: 1.5, textAlign: 'center' }}
-                            >
-                              {formatDate(date)}
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              {groupedSlots[date].map((slot) => (
-                                <Box key={slot.id}>
-                                  {slot.isBooked ? (
-                                    <Chip
-                                      size="small"
-                                      icon={<Person sx={{ fontSize: 14 }} />}
-                                      label={
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', py: 0.5 }}>
-                                          <Typography variant="caption" sx={{ lineHeight: 1.2 }}>
-                                            {slot.startTime} - {slot.endTime}
-                                          </Typography>
-                                          <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                            {slot.studentName}
-                                          </Typography>
-                                        </Box>
-                                      }
-                                      sx={{
-                                        width: '100%',
-                                        height: 'auto',
-                                        bgcolor: 'error.light',
-                                        color: 'error.contrastText',
-                                        '& .MuiChip-label': { px: 1 },
-                                      }}
-                                    />
-                                  ) : (
-                                    <Chip
-                                      size="small"
-                                      icon={<AccessTime sx={{ fontSize: 14 }} />}
-                                      label={`${slot.startTime} - ${slot.endTime}`}
-                                      onClick={() => handleBookSlot(teacher, slot)}
-                                      sx={{
-                                        width: '100%',
-                                        cursor: 'pointer',
-                                        bgcolor: 'success.light',
-                                        color: 'success.contrastText',
-                                        '&:hover': {
-                                          bgcolor: 'success.main',
-                                        },
-                                      }}
-                                    />
-                                  )}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Paper>
-                        ))}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <School fontSize="small" color="action" />
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedTeacher.subject}
+                        </Typography>
                       </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
-          </Grid>
+                    </Box>
+                  </Box>
+
+                  {/* Availability Schedule */}
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                    Bo'sh vaqtlar:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
+                    {(() => {
+                      const groupedSlots = groupSlotsByDate(selectedTeacher.availability);
+                      const dates = Object.keys(groupedSlots).sort();
+                      return dates.map((date) => (
+                        <Paper
+                          key={date}
+                          elevation={0}
+                          sx={{
+                            minWidth: 160,
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: 'grey.50',
+                            border: '1px solid',
+                            borderColor: 'grey.200',
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight={600}
+                            color="primary.main"
+                            sx={{ mb: 1.5, textAlign: 'center' }}
+                          >
+                            {formatDate(date)}
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {groupedSlots[date].map((slot) => (
+                              <Box key={slot.id}>
+                                {slot.isBooked ? (
+                                  <Paper
+                                    elevation={0}
+                                    sx={{
+                                      p: 1,
+                                      bgcolor: 'error.light',
+                                      borderRadius: 1,
+                                      color: 'error.contrastText',
+                                    }}
+                                  >
+                                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 600 }}>
+                                      {slot.startTime} - {slot.endTime}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block' }}>
+                                      {slot.studentName}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                                      {slot.studentGroup}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                                      {slot.studentPhone}
+                                    </Typography>
+                                  </Paper>
+                                ) : (
+                                  <Chip
+                                    size="small"
+                                    icon={<AccessTime sx={{ fontSize: 14 }} />}
+                                    label={`${slot.startTime} - ${slot.endTime}`}
+                                    onClick={() => handleBookSlot(selectedTeacher, slot)}
+                                    sx={{
+                                      width: '100%',
+                                      cursor: 'pointer',
+                                      bgcolor: 'success.light',
+                                      color: 'success.contrastText',
+                                      '&:hover': {
+                                        bgcolor: 'success.main',
+                                      },
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
+                        </Paper>
+                      ));
+                    })()}
+                  </Box>
+                </CardContent>
+              </Card>
+            </>
+          )}
 
           {/* Booking Dialog */}
           <Dialog open={bookingDialog} onClose={() => setBookingDialog(false)} maxWidth="xs" fullWidth>
@@ -348,7 +434,7 @@ const SupportTeachers = () => {
               <TextField
                 autoFocus
                 margin="dense"
-                label="Ismingiz"
+                label="To'liq ismingiz"
                 fullWidth
                 variant="outlined"
                 value={studentName}
@@ -357,16 +443,31 @@ const SupportTeachers = () => {
               />
               <TextField
                 margin="dense"
+                label="Guruhingiz"
+                fullWidth
+                variant="outlined"
+                placeholder="Masalan: 10-A, Olimpiada-1"
+                value={studentGroup}
+                onChange={(e) => setStudentGroup(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                margin="dense"
                 label="Telefon raqam"
                 fullWidth
                 variant="outlined"
+                placeholder="+998 90 123 45 67"
                 value={studentPhone}
                 onChange={(e) => setStudentPhone(e.target.value)}
               />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setBookingDialog(false)}>Bekor qilish</Button>
-              <Button onClick={confirmBooking} variant="contained" disabled={!studentName.trim()}>
+              <Button 
+                onClick={confirmBooking} 
+                variant="contained" 
+                disabled={!studentName.trim() || !studentGroup.trim() || !studentPhone.trim()}
+              >
                 Tasdiqlash
               </Button>
             </DialogActions>
