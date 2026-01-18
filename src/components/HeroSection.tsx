@@ -1,8 +1,10 @@
 import { Box, Container, Typography, Button } from '@mui/material';
-import { KeyboardArrowDown } from '@mui/icons-material';
+import { KeyboardArrowDown, SupportAgent } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.svg';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const scrollToResults = () => {
     document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -124,6 +126,18 @@ const HeroSection = () => {
             onClick={scrollToResults}
           >
             Natijalarimiz
+          </Button>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<SupportAgent />}
+            onClick={() => navigate('/support-teachers')}
+            sx={{
+              bgcolor: 'secondary.main',
+              '&:hover': { bgcolor: 'secondary.dark' },
+            }}
+          >
+            Yordamchi O'qituvchilar
           </Button>
         </Box>
 
