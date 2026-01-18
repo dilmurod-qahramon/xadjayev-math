@@ -143,8 +143,32 @@ const SupportTeachers = () => {
     setBookingDialog(true);
   };
 
-  const confirmBooking = () => {
-    if (!selectedSlot || !studentName.trim() || !studentGroup.trim() || !studentPhone.trim()) return;
+  const confirmBooking = async () => {
+    if (!selectedSlot || !studentName.trim() || !studentGroup.trim()) return;
+
+    const bookingData = {
+      fullName: studentName.trim(),
+      phone: studentPhone.trim() || '',
+      groupId: studentGroup.trim(),
+      teacherName: selectedSlot.teacher.name,
+      date: selectedSlot.slot.date,
+      startTime: selectedSlot.slot.startTime,
+      endTime: selectedSlot.slot.endTime,
+    };
+
+    // Send to Google Sheets
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbxcurvt1jkJnXOkUeT3wDcjobm7Ui4kHx3i4vRw2dDHkGid0oR3SoILseYiFsoFanqXHA/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+    } catch (error) {
+      console.error('Failed to save booking:', error);
+    }
 
     const updatedTeachers = teachers.map((teacher) => {
       if (teacher.id !== selectedSlot.teacher.id) return teacher;
@@ -157,7 +181,7 @@ const SupportTeachers = () => {
             isBooked: true,
             studentName: studentName.trim(),
             studentGroup: studentGroup.trim(),
-            studentPhone: studentPhone.trim(),
+            studentPhone: studentPhone.trim() || undefined,
           };
         }),
       };
@@ -381,9 +405,11 @@ const SupportTeachers = () => {
                                     <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
                                       {slot.studentGroup}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
-                                      {slot.studentPhone}
-                                    </Typography>
+                                    {slot.studentPhone && (
+                                      <Typography variant="caption" sx={{ display: 'block', opacity: 0.9 }}>
+                                        {slot.studentPhone}
+                                      </Typography>
+                                    )}
                                   </Paper>
                                 ) : (
                                   <Chip
@@ -453,7 +479,7 @@ const SupportTeachers = () => {
               />
               <TextField
                 margin="dense"
-                label="Telefon raqam"
+                label="Telefon raqam (ixtiyoriy)"
                 fullWidth
                 variant="outlined"
                 placeholder="+998 90 123 45 67"
@@ -466,7 +492,7 @@ const SupportTeachers = () => {
               <Button 
                 onClick={confirmBooking} 
                 variant="contained" 
-                disabled={!studentName.trim() || !studentGroup.trim() || !studentPhone.trim()}
+                disabled={!studentName.trim() || !studentGroup.trim()}
               >
                 Tasdiqlash
               </Button>
