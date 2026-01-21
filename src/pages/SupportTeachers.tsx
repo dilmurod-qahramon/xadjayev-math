@@ -194,6 +194,7 @@ const SupportTeachers = () => {
             date: selectedSlot.slot.date,
             startTime: selectedSlot.slot.startTime,
             endTime: selectedSlot.slot.endTime,
+            slotId: selectedSlot.slot.id,
         };
 
         try {
@@ -297,50 +298,54 @@ const SupportTeachers = () => {
 
     useEffect(() => {
         fetchBookings().then((bookings) => {
-            // Ensure bookings is an array
             const bookingsArray = Array.isArray(bookings) ? bookings : [];
+            console.log('Processing bookings:', bookingsArray);
             
             setTeachers((prevTeachers) =>
                 prevTeachers.map((teacher) => ({
                     ...teacher,
                     availability: teacher.availability.map((slot) => {
                         const booked = bookingsArray.find((b: any) => {
-                            // Normalize booking date to YYYY-MM-DD (en-CA)
-                            let bookingDate: string | null = null;
-                            if (b.date) {
-                                const d = new Date(b.date);
-                                if (!isNaN(d.getTime())) {
-                                    bookingDate = d.toLocaleDateString('en-CA');
-                                } else if (typeof b.date === 'string' && b.date.includes('T')) {
-                                    bookingDate = b.date.split('T')[0];
-                                }
+                            // If slotId is available, use it for exact matching
+                            if (b.slotId && b.slotId === slot.id) {
+                                return true;
                             }
 
-                            // Normalize booking start/end to HH:MM (24h)
-                            const normalizeTime = (input: any) => {
-                                if (!input) return null;
-                                const dt = new Date(input);
-                                if (!isNaN(dt.getTime())) {
-                                    return dt.toLocaleTimeString('en-GB', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    });
-                                }
-                                if (typeof input === 'string') {
-                                    const m = input.match(/(\d{1,2}:\d{2})/);
-                                    if (m) return m[1].padStart(5, '0');
-                                }
-                                return null;
-                            };
-
-                            const bookingStart = normalizeTime(b.startTime);
-                            const bookingEnd = normalizeTime(b.endTime);
-
+                            // Fallback: Match by teacher, date, and time strings
                             const matchesTeacher = String(b.teacherName).trim() === String(teacher.name).trim();
+                            
+                            // Match date - handle both ISO string and plain date
+                            let bookingDate = '';
+                            if (b.date) {
+                                if (typeof b.date === 'string' && b.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                    bookingDate = b.date;
+                                } else {
+                                    const d = new Date(b.date);
+                                    if (!isNaN(d.getTime())) {
+                                        bookingDate = d.toISOString().split('T')[0];
+                                    }
+                                }
+                            }
                             const matchesDate = bookingDate === slot.date;
-                            const matchesExactTime = bookingStart === slot.startTime && bookingEnd === slot.endTime;
 
-                            return matchesTeacher && matchesDate && matchesExactTime;
+                            // Match time as plain strings (HH:MM format)
+                            const matchesTime = 
+                                String(b.startTime).trim() === slot.startTime && 
+                                String(b.endTime).trim() === slot.endTime;
+
+                            console.log('Matching:', { 
+                                slotId: slot.id, 
+                                teacher: teacher.name, 
+                                slotDate: slot.date, 
+                                bookingDate,
+                                slotStart: slot.startTime,
+                                bookingStart: b.startTime,
+                                matchesTeacher, 
+                                matchesDate, 
+                                matchesTime 
+                            });
+
+                            return matchesTeacher && matchesDate && matchesTime;
                         });
 
                         return booked
