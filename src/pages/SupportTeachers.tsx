@@ -16,8 +16,11 @@ import {
     IconButton,
     Grid,
     Paper,
+    Alert,
+    Snackbar,
+    CircularProgress,
 } from '@mui/material';
-import { ArrowBack, School, AccessTime } from '@mui/icons-material';
+import { ArrowBack, School, AccessTime, Warning, CheckCircle } from '@mui/icons-material';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import muiTheme from '@/theme/muiTheme';
@@ -141,23 +144,19 @@ async function fetchBookings() {
             method: 'GET',
             redirect: 'follow',
         });
-        console.log('Fetch Bookings Response Status:', res.status);
         
         if (!res.ok) {
             throw new Error('Failed to fetch bookings');
         }
         
         const text = await res.text();
-        console.log('Fetch Bookings Raw Response:', text);
         
         try {
             return JSON.parse(text);
-        } catch (e) {
-            console.error('Failed to parse bookings JSON:', e);
+        } catch {
             return [];
         }
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
+    } catch {
         return [];
     }
 }
@@ -176,6 +175,17 @@ const SupportTeachers = () => {
     const [studentName, setStudentName] = useState('');
     const [studentGroup, setStudentGroup] = useState('');
     const [studentPhone, setStudentPhone] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: 'success' | 'error' | 'warning';
+    }>({ open: false, message: '', severity: 'success' });
+    const [errorDialog, setErrorDialog] = useState<{
+        open: boolean;
+        title: string;
+        message: string;
+    }>({ open: false, title: '', message: '' });
 
     const handleBookSlot = (teacher: Teacher, slot: TimeSlot) => {
         setSelectedSlot({ teacher, slot });
@@ -185,6 +195,8 @@ const SupportTeachers = () => {
     const confirmBooking = async () => {
         if (!selectedSlot || !studentName.trim() || !studentGroup.trim())
             return;
+
+        setIsSubmitting(true);
 
         const bookingData = {
             fullName: studentName.trim(),
@@ -204,44 +216,56 @@ const SupportTeachers = () => {
                 body: JSON.stringify(bookingData),
                 redirect: 'follow',
             });
-
-            console.log('Response Status:', res.status);
-            console.log('Response Headers:', res.headers);
             
             const text = await res.text();
-            console.log('Raw Response:', text);
             
             let result;
             try {
                 result = JSON.parse(text);
-            } catch (e) {
-                console.error('Failed to parse JSON:', e);
-                // If response is empty or not JSON, treat as success
+            } catch {
                 result = {};
             }
 
-            console.log('Parsed Result:', result);
-
             if (result.error) {
-                console.error('Booking error:', result.error);
-                if (result.error.includes('getDataRange')) {
-                    alert('Server xatosi: Google Sheet konfiguratsiyasini tekshiring');
-                } else if (result.error.includes('already')) {
-                    alert('Bu vaqt allaqachon band!');
+                setIsSubmitting(false);
+                if (result.error.includes('already') || result.error.includes('booked')) {
+                    setErrorDialog({
+                        open: true,
+                        title: 'Vaqt band!',
+                        message: 'Bu vaqt allaqachon boshqa o\'quvchi tomonidan band qilingan. Iltimos, boshqa vaqtni tanlang.',
+                    });
+                } else if (result.error.includes('getDataRange')) {
+                    setErrorDialog({
+                        open: true,
+                        title: 'Server xatosi',
+                        message: 'Serverda xatolik yuz berdi. Iltimos, keyinroq qayta urinib ko\'ring.',
+                    });
                 } else {
-                    alert('Xatolik: ' + result.error);
+                    setErrorDialog({
+                        open: true,
+                        title: 'Xatolik',
+                        message: result.error,
+                    });
                 }
                 return;
             }
 
             if (result.status === 'error') {
-                alert('Bu vaqt allaqachon band!');
-                console.error('Booking error:', result.message);
+                setIsSubmitting(false);
+                setErrorDialog({
+                    open: true,
+                    title: 'Vaqt band!',
+                    message: 'Bu vaqt allaqachon boshqa o\'quvchi tomonidan band qilingan. Iltimos, boshqa vaqtni tanlang.',
+                });
                 return;
             }
-        } catch (error) {
-            console.error('Failed to save booking:', error);
-            alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+        } catch {
+            setIsSubmitting(false);
+            setErrorDialog({
+                open: true,
+                title: 'Ulanish xatosi',
+                message: 'Serverga ulanishda xatolik yuz berdi. Iltimos, internet aloqangizni tekshiring va qayta urinib ko\'ring.',
+            });
             return;
         }
 
@@ -264,7 +288,6 @@ const SupportTeachers = () => {
 
         setTeachers(updatedTeachers);
 
-        // Update selected teacher with new data
         const updatedSelectedTeacher = updatedTeachers.find(
             (t) => t.id === selectedTeacher?.id,
         );
@@ -272,11 +295,17 @@ const SupportTeachers = () => {
             setSelectedTeacher(updatedSelectedTeacher);
         }
 
+        setIsSubmitting(false);
         setBookingDialog(false);
         setSelectedSlot(null);
         setStudentName('');
         setStudentGroup('');
         setStudentPhone('');
+        setSnackbar({
+            open: true,
+            message: 'Uchrashuv muvaffaqiyatli belgilandi!',
+            severity: 'success',
+        });
     };
 
     const groupSlotsByDate = (slots: TimeSlot[]) => {
@@ -299,22 +328,18 @@ const SupportTeachers = () => {
     useEffect(() => {
         fetchBookings().then((bookings) => {
             const bookingsArray = Array.isArray(bookings) ? bookings : [];
-            console.log('Processing bookings:', bookingsArray);
             
             setTeachers((prevTeachers) =>
                 prevTeachers.map((teacher) => ({
                     ...teacher,
                     availability: teacher.availability.map((slot) => {
                         const booked = bookingsArray.find((b: any) => {
-                            // If slotId is available, use it for exact matching
                             if (b.slotId && b.slotId === slot.id) {
                                 return true;
                             }
 
-                            // Fallback: Match by teacher, date, and time strings
                             const matchesTeacher = String(b.teacherName).trim() === String(teacher.name).trim();
                             
-                            // Match date - handle both ISO string and plain date
                             let bookingDate = '';
                             if (b.date) {
                                 if (typeof b.date === 'string' && b.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -328,22 +353,9 @@ const SupportTeachers = () => {
                             }
                             const matchesDate = bookingDate === slot.date;
 
-                            // Match time as plain strings (HH:MM format)
                             const matchesTime = 
                                 String(b.startTime).trim() === slot.startTime && 
                                 String(b.endTime).trim() === slot.endTime;
-
-                            console.log('Matching:', { 
-                                slotId: slot.id, 
-                                teacher: teacher.name, 
-                                slotDate: slot.date, 
-                                bookingDate,
-                                slotStart: slot.startTime,
-                                bookingStart: b.startTime,
-                                matchesTeacher, 
-                                matchesDate, 
-                                matchesTime 
-                            });
 
                             return matchesTeacher && matchesDate && matchesTime;
                         });
@@ -830,20 +842,62 @@ const SupportTeachers = () => {
                             />
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={() => setBookingDialog(false)}>
+                            <Button onClick={() => setBookingDialog(false)} disabled={isSubmitting}>
                                 Bekor qilish
                             </Button>
                             <Button
                                 onClick={confirmBooking}
                                 variant='contained'
                                 disabled={
-                                    !studentName.trim() || !studentGroup.trim()
+                                    !studentName.trim() || !studentGroup.trim() || isSubmitting
                                 }
+                                startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
                             >
-                                Tasdiqlash
+                                {isSubmitting ? 'Yuklanmoqda...' : 'Tasdiqlash'}
                             </Button>
                         </DialogActions>
                     </Dialog>
+
+                    {/* Error Dialog */}
+                    <Dialog
+                        open={errorDialog.open}
+                        onClose={() => setErrorDialog({ ...errorDialog, open: false })}
+                        maxWidth='xs'
+                        fullWidth
+                    >
+                        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Warning color='warning' />
+                            {errorDialog.title}
+                        </DialogTitle>
+                        <DialogContent>
+                            <Typography>{errorDialog.message}</Typography>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                onClick={() => setErrorDialog({ ...errorDialog, open: false })}
+                                variant='contained'
+                            >
+                                Tushundim
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Success Snackbar */}
+                    <Snackbar
+                        open={snackbar.open}
+                        autoHideDuration={4000}
+                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    >
+                        <Alert
+                            onClose={() => setSnackbar({ ...snackbar, open: false })}
+                            severity={snackbar.severity}
+                            variant='filled'
+                            icon={snackbar.severity === 'success' ? <CheckCircle /> : undefined}
+                        >
+                            {snackbar.message}
+                        </Alert>
+                    </Snackbar>
                 </Container>
             </Box>
         </ThemeProvider>
