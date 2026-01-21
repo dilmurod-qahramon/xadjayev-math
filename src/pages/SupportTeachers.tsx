@@ -133,15 +133,29 @@ const formatDate = (dateStr: string) => {
 };
 
 const API_URL =
-    'https://script.google.com/macros/s/AKfycbw807StaP6pSuDMUf-MDagYMurh_mniCNTYHnVNXcoTF1W2ril0nRkTctF9BjkecUsZMw/exec';
+    'https://script.google.com/macros/s/AKfycby8oSbjG6C8mKEQNqpUCkVTR0aMkkR_3gx9fok6MBgXxqfrX71CAFcDDKgcqCs74fUgvw/exec';
 
 async function fetchBookings() {
     try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+            method: 'GET',
+            redirect: 'follow',
+        });
+        console.log('Fetch Bookings Response Status:', res.status);
+        
         if (!res.ok) {
             throw new Error('Failed to fetch bookings');
         }
-        return await res.json();
+        
+        const text = await res.text();
+        console.log('Fetch Bookings Raw Response:', text);
+        
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse bookings JSON:', e);
+            return [];
+        }
     } catch (error) {
         console.error('Error fetching bookings:', error);
         return [];
@@ -185,18 +199,49 @@ const SupportTeachers = () => {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(bookingData),
+                redirect: 'follow',
             });
 
-            const result = await res.json();
+            console.log('Response Status:', res.status);
+            console.log('Response Headers:', res.headers);
+            
+            const text = await res.text();
+            console.log('Raw Response:', text);
+            
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                // If response is empty or not JSON, treat as success
+                result = {};
+            }
+
+            console.log('Parsed Result:', result);
 
             if (result.error) {
+                console.error('Booking error:', result.error);
+                if (result.error.includes('getDataRange')) {
+                    alert('Server xatosi: Google Sheet konfiguratsiyasini tekshiring');
+                } else if (result.error.includes('already')) {
+                    alert('Bu vaqt allaqachon band!');
+                } else {
+                    alert('Xatolik: ' + result.error);
+                }
+                return;
+            }
+
+            if (result.status === 'error') {
                 alert('Bu vaqt allaqachon band!');
+                console.error('Booking error:', result.message);
                 return;
             }
         } catch (error) {
             console.error('Failed to save booking:', error);
+            alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+            return;
         }
 
         const updatedTeachers = teachers.map((teacher) => {
@@ -252,26 +297,61 @@ const SupportTeachers = () => {
 
     useEffect(() => {
         fetchBookings().then((bookings) => {
+            // Ensure bookings is an array
+            const bookingsArray = Array.isArray(bookings) ? bookings : [];
+            
             setTeachers((prevTeachers) =>
                 prevTeachers.map((teacher) => ({
                     ...teacher,
                     availability: teacher.availability.map((slot) => {
-                        const booked = bookings.find(
-                            (b: any) =>
-                                b.teacherName === teacher.name &&
-                                b.date === slot.date &&
-                                b.startTime === slot.startTime,
-                        );
-
-                        return booked ?
-                                {
-                                    ...slot,
-                                    isBooked: true,
-                                    studentName: booked.fullName,
-                                    studentGroup: booked.groupId,
-                                    studentPhone: booked.phone || undefined,
+                        const booked = bookingsArray.find((b: any) => {
+                            // Normalize booking date to YYYY-MM-DD (en-CA)
+                            let bookingDate: string | null = null;
+                            if (b.date) {
+                                const d = new Date(b.date);
+                                if (!isNaN(d.getTime())) {
+                                    bookingDate = d.toLocaleDateString('en-CA');
+                                } else if (typeof b.date === 'string' && b.date.includes('T')) {
+                                    bookingDate = b.date.split('T')[0];
                                 }
-                            :   slot;
+                            }
+
+                            // Normalize booking start/end to HH:MM (24h)
+                            const normalizeTime = (input: any) => {
+                                if (!input) return null;
+                                const dt = new Date(input);
+                                if (!isNaN(dt.getTime())) {
+                                    return dt.toLocaleTimeString('en-GB', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    });
+                                }
+                                if (typeof input === 'string') {
+                                    const m = input.match(/(\d{1,2}:\d{2})/);
+                                    if (m) return m[1].padStart(5, '0');
+                                }
+                                return null;
+                            };
+
+                            const bookingStart = normalizeTime(b.startTime);
+                            const bookingEnd = normalizeTime(b.endTime);
+
+                            const matchesTeacher = String(b.teacherName).trim() === String(teacher.name).trim();
+                            const matchesDate = bookingDate === slot.date;
+                            const matchesExactTime = bookingStart === slot.startTime && bookingEnd === slot.endTime;
+
+                            return matchesTeacher && matchesDate && matchesExactTime;
+                        });
+
+                        return booked
+                            ? {
+                                  ...slot,
+                                  isBooked: true,
+                                  studentName: booked.fullName,
+                                  studentGroup: booked.groupId,
+                                  studentPhone: booked.phone || undefined,
+                              }
+                            : slot;
                     }),
                 })),
             );
