@@ -136,7 +136,7 @@ const formatDate = (dateStr: string) => {
 };
 
 const API_URL =
-    'https://script.google.com/macros/s/AKfycby8oSbjG6C8mKEQNqpUCkVTR0aMkkR_3gx9fok6MBgXxqfrX71CAFcDDKgcqCs74fUgvw/exec';
+    'https://script.google.com/macros/s/AKfycby--Ds7OwVOxb7-AGqlRPYEFL1n2XY_0CpzvLkrsJA9imuDiunRSLOH7mLdoqCrVDTMfA/exec';
 
 async function fetchBookings() {
     try {
