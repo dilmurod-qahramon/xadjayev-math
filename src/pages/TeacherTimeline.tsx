@@ -92,35 +92,43 @@ const generateTimeSlots = (teacherId: string): TimeSlot[] => {
     return slots;
 };
 
+
 // Teachers data
 const teachersData: Teacher[] = [
     {
         id: '1',
-        name: 'Abdullayev Sardor',
-        subject: 'Algebra va Geometriya',
+        name: 'Muzaffar',
+        subject: 'Advanced',
         avatar: 'AS',
         availability: generateTimeSlots('1'),
     },
     {
         id: '2',
-        name: 'Karimova Nilufar',
-        subject: "Matematika (Boshlang'ich)",
+        name: 'Sarvinoz',
+        subject: "Advanced",
         avatar: 'KN',
         availability: generateTimeSlots('2'),
     },
     {
         id: '3',
-        name: 'Toshmatov Bekzod',
-        subject: 'Olimpiada Matematikasi',
+        name: 'Saidjon',
+        subject: 'Advanced',
         avatar: 'TB',
         availability: generateTimeSlots('3'),
     },
     {
         id: '4',
-        name: 'Rahimova Madina',
-        subject: 'DTM Tayyorgarlik',
+        name: 'Akbar',
+        subject: 'Fundamental',
         avatar: 'RM',
         availability: generateTimeSlots('4'),
+    },
+    {
+        id: '5',
+        name: 'Xayriddin',
+        subject: 'Fundamental',
+        avatar: 'XA',
+        availability: generateTimeSlots('5'),
     },
 ];
 
@@ -136,7 +144,7 @@ const formatDate = (dateStr: string) => {
 
 const API_URL =
     'https://script.google.com/macros/s/AKfycbxU-flBYdJtcrmDqtCFZYx2I_p2le351vSqrdwAdOa_XenZ_Mrp4dvG5HK4NL2yS6w1nQ/exec';
-    
+
 async function fetchBookings(teacherName: string) {
     try {
         const url = `${API_URL}?teacherName=${encodeURIComponent(teacherName)}`;
