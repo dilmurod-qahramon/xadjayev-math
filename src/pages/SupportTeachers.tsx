@@ -24,28 +24,34 @@ interface Teacher {
 const teachers: Teacher[] = [
     {
         id: '1',
-        name: 'Abdullayev Sardor',
-        subject: 'Algebra va Geometriya',
+        name: 'Muzaffar',
+        subject: 'Advanced',
         avatar: 'AS',
     },
     {
         id: '2',
-        name: 'Karimova Nilufar',
-        subject: "Matematika (Boshlang'ich)",
+        name: 'Sarvinoz',
+        subject: "Advanced",
         avatar: 'KN',
     },
     {
         id: '3',
-        name: 'Toshmatov Bekzod',
-        subject: 'Olimpiada Matematikasi',
+        name: 'Saidjon',
+        subject: 'Advanced',
         avatar: 'TB',
     },
     {
         id: '4',
-        name: 'Rahimova Madina',
-        subject: 'DTM Tayyorgarlik',
+        name: 'Akbar',
+        subject: 'Fundamental',
         avatar: 'RM',
     },
+    {
+        id: '5',
+        name: 'Xayriddin',
+        subject: 'Fundamental',
+        avatar: 'XA'
+    }
 ];
 
 const SupportTeachers = () => {

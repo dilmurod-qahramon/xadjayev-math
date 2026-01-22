@@ -135,8 +135,8 @@ const formatDate = (dateStr: string) => {
 };
 
 const API_URL =
-    'https://script.google.com/macros/s/AKfycby8oSbjG6C8mKEQNqpUCkVTR0aMkkR_3gx9fok6MBgXxqfrX71CAFcDDKgcqCs74fUgvw/exec';
-
+    'https://script.google.com/macros/s/AKfycbxU-flBYdJtcrmDqtCFZYx2I_p2le351vSqrdwAdOa_XenZ_Mrp4dvG5HK4NL2yS6w1nQ/exec';
+    
 async function fetchBookings(teacherName: string) {
     try {
         const url = `${API_URL}?teacherName=${encodeURIComponent(teacherName)}`;
