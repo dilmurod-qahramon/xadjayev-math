@@ -176,6 +176,7 @@ const TeacherTimeline = () => {
     const initialTeacher = teachersData.find(t => t.id === teacherId);
     
     const [teacher, setTeacher] = useState<Teacher | null>(initialTeacher || null);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
     const [bookingDialog, setBookingDialog] = useState(false);
     const [studentName, setStudentName] = useState('');
@@ -324,6 +325,7 @@ const TeacherTimeline = () => {
     useEffect(() => {
         if (!teacher) return;
         
+        setIsLoading(true);
         fetchBookings(teacher.name).then((bookings) => {
             const bookingsArray = Array.isArray(bookings) ? bookings : [];
 
@@ -369,6 +371,7 @@ const TeacherTimeline = () => {
                     }),
                 };
             });
+            setIsLoading(false);
         });
     }, [teacher?.id]);
 
@@ -501,6 +504,24 @@ const TeacherTimeline = () => {
                             >
                                 Bo'sh vaqtlar:
                             </Typography>
+                            
+                            {isLoading ? (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        py: 8,
+                                        gap: 2,
+                                    }}
+                                >
+                                    <CircularProgress size={40} />
+                                    <Typography variant='body2' color='text.secondary'>
+                                        Vaqtlar yuklanmoqda...
+                                    </Typography>
+                                </Box>
+                            ) : (
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -619,6 +640,7 @@ const TeacherTimeline = () => {
                                     ));
                                 })()}
                             </Box>
+                            )}
                         </CardContent>
                     </Card>
 
