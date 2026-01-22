@@ -18,8 +18,9 @@ import {
     Alert,
     Snackbar,
     CircularProgress,
+    Tooltip,
 } from '@mui/material';
-import { ArrowBack, School, AccessTime, Warning, CheckCircle } from '@mui/icons-material';
+import { ArrowBack, School, AccessTime, Warning, CheckCircle, EventBusy, EventAvailable, Person, Groups } from '@mui/icons-material';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import muiTheme from '@/theme/muiTheme';
@@ -496,14 +497,31 @@ const TeacherTimeline = () => {
                                 </Box>
                             </Box>
 
-                            {/* Availability Schedule */}
-                            <Typography
-                                variant='subtitle2'
-                                color='text.secondary'
-                                sx={{ mb: 2 }}
-                            >
-                                Bo'sh vaqtlar:
-                            </Typography>
+                            {/* Legend */}
+                            <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Box sx={{ 
+                                        width: 12, 
+                                        height: 12, 
+                                        borderRadius: '50%', 
+                                        bgcolor: '#10b981',
+                                    }} />
+                                    <Typography variant='caption' color='text.secondary'>
+                                        Bo'sh
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Box sx={{ 
+                                        width: 12, 
+                                        height: 12, 
+                                        borderRadius: '50%', 
+                                        bgcolor: '#ef4444',
+                                    }} />
+                                    <Typography variant='caption' color='text.secondary'>
+                                        Band
+                                    </Typography>
+                                </Box>
+                            </Box>
                             
                             {isLoading ? (
                                 <Box
@@ -522,124 +540,193 @@ const TeacherTimeline = () => {
                                     </Typography>
                                 </Box>
                             ) : (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    gap: 2,
-                                    overflowX: 'auto',
-                                    pb: 2,
-                                }}
-                            >
-                                {(() => {
-                                    const groupedSlots = groupSlotsByDate(teacher.availability);
-                                    const dates = Object.keys(groupedSlots).sort();
-                                    return dates.map((date) => (
-                                        <Paper
-                                            key={date}
-                                            elevation={0}
-                                            sx={{
-                                                minWidth: 160,
-                                                p: 2,
-                                                borderRadius: 2,
-                                                bgcolor: 'grey.50',
-                                                border: '1px solid',
-                                                borderColor: 'grey.200',
-                                            }}
-                                        >
-                                            <Typography
-                                                variant='subtitle2'
-                                                fontWeight={600}
-                                                color='primary.main'
-                                                sx={{
-                                                    mb: 1.5,
-                                                    textAlign: 'center',
-                                                }}
-                                            >
-                                                {formatDate(date)}
-                                            </Typography>
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: 1,
-                                                }}
-                                            >
-                                                {groupedSlots[date].map((slot) => (
-                                                    <Box key={slot.id}>
-                                                        {slot.isBooked ? (
-                                                            <Paper
-                                                                elevation={0}
-                                                                sx={{
-                                                                    p: 1,
-                                                                    bgcolor: 'error.light',
-                                                                    borderRadius: 1,
-                                                                    color: 'error.contrastText',
-                                                                }}
-                                                            >
-                                                                <Typography
-                                                                    variant='caption'
-                                                                    sx={{
-                                                                        display: 'block',
-                                                                        fontWeight: 600,
-                                                                    }}
-                                                                >
-                                                                    {slot.startTime} - {slot.endTime}
-                                                                </Typography>
-                                                                <Typography
-                                                                    variant='caption'
-                                                                    sx={{ display: 'block' }}
-                                                                >
-                                                                    {slot.studentName}
-                                                                </Typography>
-                                                                <Typography
-                                                                    variant='caption'
-                                                                    sx={{
-                                                                        display: 'block',
-                                                                        opacity: 0.9,
-                                                                    }}
-                                                                >
-                                                                    {slot.studentGroup}
-                                                                </Typography>
-                                                                {slot.studentPhone && (
-                                                                    <Typography
-                                                                        variant='caption'
-                                                                        sx={{
-                                                                            display: 'block',
-                                                                            opacity: 0.9,
-                                                                        }}
-                                                                    >
-                                                                        {slot.studentPhone}
-                                                                    </Typography>
-                                                                )}
-                                                            </Paper>
-                                                        ) : (
-                                                            <Chip
-                                                                size='small'
-                                                                icon={
-                                                                    <AccessTime
-                                                                        sx={{ fontSize: 14 }}
-                                                                    />
-                                                                }
-                                                                label={`${slot.startTime} - ${slot.endTime}`}
-                                                                onClick={() => handleBookSlot(slot)}
-                                                                sx={{
-                                                                    width: '100%',
-                                                                    cursor: 'pointer',
-                                                                    bgcolor: 'success.light',
-                                                                    color: 'success.contrastText',
-                                                                    '&:hover': {
-                                                                        bgcolor: 'success.main',
-                                                                    },
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        gap: 1.5,
+                                        overflowX: 'auto',
+                                        pb: 2,
+                                        '&::-webkit-scrollbar': {
+                                            height: 8,
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                            bgcolor: 'grey.100',
+                                            borderRadius: 4,
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                            bgcolor: 'grey.300',
+                                            borderRadius: 4,
+                                            '&:hover': {
+                                                bgcolor: 'grey.400',
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {(() => {
+                                        const groupedSlots = groupSlotsByDate(teacher.availability);
+                                        const dates = Object.keys(groupedSlots).sort();
+                                        return dates.map((date) => {
+                                            const dateObj = new Date(date);
+                                            const isToday = new Date().toISOString().split('T')[0] === date;
+                                            const dayName = dateObj.toLocaleDateString('uz-UZ', { weekday: 'short' });
+                                            const dayNum = dateObj.getDate();
+                                            const monthName = dateObj.toLocaleDateString('uz-UZ', { month: 'short' });
+                                            
+                                            return (
+                                                <Box
+                                                    key={date}
+                                                    sx={{
+                                                        minWidth: 140,
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    {/* Date Header */}
+                                                    <Box
+                                                        sx={{
+                                                            textAlign: 'center',
+                                                            mb: 1.5,
+                                                            pb: 1.5,
+                                                            borderBottom: '2px solid',
+                                                            borderColor: isToday ? 'primary.main' : 'grey.200',
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant='caption'
+                                                            sx={{
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: 1,
+                                                                color: isToday ? 'primary.main' : 'text.secondary',
+                                                                fontWeight: 600,
+                                                            }}
+                                                        >
+                                                            {dayName}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant='h5'
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                color: isToday ? 'primary.main' : 'text.primary',
+                                                                lineHeight: 1.2,
+                                                            }}
+                                                        >
+                                                            {dayNum}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant='caption'
+                                                            color={isToday ? 'primary.main' : 'text.secondary'}
+                                                        >
+                                                            {monthName}
+                                                        </Typography>
+                                                        {isToday && (
+                                                            <Chip 
+                                                                label="Bugun" 
+                                                                size="small" 
+                                                                color="primary"
+                                                                sx={{ 
+                                                                    mt: 0.5, 
+                                                                    height: 20, 
+                                                                    fontSize: '0.65rem',
+                                                                    fontWeight: 600,
                                                                 }}
                                                             />
                                                         )}
                                                     </Box>
-                                                ))}
-                                            </Box>
-                                        </Paper>
-                                    ));
-                                })()}
-                            </Box>
+
+                                                    {/* Time Slots */}
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                                                        {groupedSlots[date].map((slot) => (
+                                                            <Box key={slot.id}>
+                                                                {slot.isBooked ? (
+                                                                    <Tooltip
+                                                                        title={
+                                                                            <Box sx={{ p: 0.5 }}>
+                                                                                <Typography variant='caption' sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                                                                    <Person sx={{ fontSize: 14 }} />
+                                                                                    {slot.studentName}
+                                                                                </Typography>
+                                                                                <Typography variant='caption' sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                    <Groups sx={{ fontSize: 14 }} />
+                                                                                    {slot.studentGroup}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                        }
+                                                                        arrow
+                                                                        placement="right"
+                                                                    >
+                                                                        <Box
+                                                                            sx={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: 0.75,
+                                                                                px: 1.5,
+                                                                                py: 1,
+                                                                                borderRadius: 2,
+                                                                                bgcolor: '#fef2f2',
+                                                                                border: '1px solid #fecaca',
+                                                                                cursor: 'not-allowed',
+                                                                                opacity: 0.85,
+                                                                            }}
+                                                                        >
+                                                                            <EventBusy sx={{ fontSize: 16, color: '#ef4444' }} />
+                                                                            <Typography
+                                                                                variant='caption'
+                                                                                sx={{
+                                                                                    fontWeight: 500,
+                                                                                    color: '#dc2626',
+                                                                                    textDecoration: 'line-through',
+                                                                                    fontSize: '0.75rem',
+                                                                                }}
+                                                                            >
+                                                                                {slot.startTime}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                    </Tooltip>
+                                                                ) : (
+                                                                    <Box
+                                                                        onClick={() => handleBookSlot(slot)}
+                                                                        sx={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 0.75,
+                                                                            px: 1.5,
+                                                                            py: 1,
+                                                                            borderRadius: 2,
+                                                                            bgcolor: '#f0fdf4',
+                                                                            border: '1px solid #bbf7d0',
+                                                                            cursor: 'pointer',
+                                                                            transition: 'all 0.2s ease',
+                                                                            '&:hover': {
+                                                                                bgcolor: '#dcfce7',
+                                                                                borderColor: '#86efac',
+                                                                                transform: 'translateY(-1px)',
+                                                                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
+                                                                            },
+                                                                            '&:active': {
+                                                                                transform: 'translateY(0)',
+                                                                            },
+                                                                        }}
+                                                                    >
+                                                                        <EventAvailable sx={{ fontSize: 16, color: '#10b981' }} />
+                                                                        <Typography
+                                                                            variant='caption'
+                                                                            sx={{
+                                                                                fontWeight: 600,
+                                                                                color: '#059669',
+                                                                                fontSize: '0.75rem',
+                                                                            }}
+                                                                        >
+                                                                            {slot.startTime}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                )}
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        });
+                                    })()}
+                                </Box>
                             )}
                         </CardContent>
                     </Card>
