@@ -137,9 +137,10 @@ const formatDate = (dateStr: string) => {
 const API_URL =
     'https://script.google.com/macros/s/AKfycby8oSbjG6C8mKEQNqpUCkVTR0aMkkR_3gx9fok6MBgXxqfrX71CAFcDDKgcqCs74fUgvw/exec';
 
-async function fetchBookings() {
+async function fetchBookings(teacherName: string) {
     try {
-        const res = await fetch(API_URL, {
+        const url = `${API_URL}?teacherName=${encodeURIComponent(teacherName)}`;
+        const res = await fetch(url, {
             method: 'GET',
             redirect: 'follow',
         });
@@ -315,7 +316,7 @@ const TeacherTimeline = () => {
     useEffect(() => {
         if (!teacher) return;
         
-        fetchBookings().then((bookings) => {
+        fetchBookings(teacher.name).then((bookings) => {
             const bookingsArray = Array.isArray(bookings) ? bookings : [];
 
             setTeacher((prev) => {
@@ -327,8 +328,6 @@ const TeacherTimeline = () => {
                             if (b.slotId && b.slotId === slot.id) {
                                 return true;
                             }
-
-                            const matchesTeacher = String(b.teacherName).trim() === String(prev.name).trim();
 
                             let bookingDate = '';
                             if (b.date) {
@@ -347,7 +346,7 @@ const TeacherTimeline = () => {
                                 String(b.startTime).trim() === slot.startTime &&
                                 String(b.endTime).trim() === slot.endTime;
 
-                            return matchesTeacher && matchesDate && matchesTime;
+                            return matchesDate && matchesTime;
                         });
 
                         return booked
