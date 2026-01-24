@@ -9,15 +9,22 @@ import {
   CardContent,
   Snackbar,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { Phone, Send, LocationOn, AccessTime } from '@mui/icons-material';
+import { submitLead } from '@/services/leadService';
 
 const ContactSection = () => {
   const [phone, setPhone] = useState('');
   const [comment, setComment] = useState('');
   const [phoneError, setPhoneError] = useState('');
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; severity: 'success' | 'error'; message: string }>({
+    open: false,
+    severity: 'success',
+    message: '',
+  });
 
   const validatePhone = (value: string) => {
     const phoneRegex = /^\+?[0-9]{9,15}$/;
@@ -30,18 +37,37 @@ const ContactSection = () => {
     return '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const error = validatePhone(phone);
     setPhoneError(error);
     
     if (!error) {
-      // Handle form submission
-      console.log({ phone, comment });
-      setOpenSnackbar(true);
-      setPhone('');
-      setComment('');
+      setIsSubmitting(true);
+      
+      const result = await submitLead({
+        phone: phone,
+        comments: comment,
+      });
+
+      setIsSubmitting(false);
+
+      if (result.success) {
+        setSnackbar({
+          open: true,
+          severity: 'success',
+          message: "So'rovingiz qabul qilindi! Tez orada bog'lanamiz.",
+        });
+        setPhone('');
+        setComment('');
+      } else {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: "Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+        });
+      }
     }
   };
 
@@ -220,12 +246,13 @@ const ContactSection = () => {
                     color="primary"
                     size="large"
                     fullWidth
-                    endIcon={<Send />}
+                    disabled={isSubmitting}
+                    endIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Send />}
                     sx={{
                       py: 1.5,
                     }}
                   >
-                    Jo'natish
+                    {isSubmitting ? 'Yuborilmoqda...' : "Jo'natish"}
                   </Button>
                 </Box>
               </CardContent>
@@ -235,17 +262,17 @@ const ContactSection = () => {
       </Container>
 
       <Snackbar
-        open={openSnackbar}
+        open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setOpenSnackbar(false)}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
-          onClose={() => setOpenSnackbar(false)}
-          severity="success"
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
-          So'rovingiz qabul qilindi! Tez orada bog'lanamiz.
+          {snackbar.message}
         </Alert>
       </Snackbar>
     </Box>
